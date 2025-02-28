@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Osteotomo Angulado USA Delta 1,8",
+    "price": "$45.900",
+    "stock": "1 disponibles",
+    "quantity": 1,
+    "link": "https://www.denteeth.cl/producto/osteotomo-angulado-usa-delta-18/",
+    "image": "https://www.denteeth.cl/wp-content/uploads/2018/10/Osteotomo-Angulado-USA-Delta-18-1-600x600.jpg",
+    "site": "denteeth"
+  },
+  {
+    "name": "Osteotomo Angulado USA Delta 2,8",
+    "price": "$45.900",
+    "stock": "1 disponibles",
+    "quantity": 1,
+    "link": "https://www.denteeth.cl/producto/osteotomo-angulado-usa-delta-28/",
+    "image": "https://www.denteeth.cl/wp-content/uploads/2018/10/Osteotomo-Angulado-USA-Delta-28-1-600x600.jpg",
+    "site": "denteeth"
+  },
+  {
+    "name": "Osteotomo Angulado USA Delta 3,5",
+    "price": "$45.900",
+    "stock": "Sin existencias",
+    "quantity": null,
+    "link": "https://www.denteeth.cl/producto/osteotomo-angulado-usa-delta-35/",
+    "image": "https://www.denteeth.cl/wp-content/uploads/2018/10/Osteotomo-Angulado-USA-Delta-35-1-600x600.jpg",
+    "site": "denteeth"
+  },
+  {
+    "name": "Osteotomo Angulado USA Delta 4,0",
+    "price": "$45.900",
+    "stock": "1 disponibles",
+    "quantity": 1,
+    "link": "https://www.denteeth.cl/producto/osteotomo-angulado-usa-delta-40/",
+    "image": "https://www.denteeth.cl/wp-content/uploads/2018/10/Osteotomo-Angulado-USA-Delta-40-1-600x600.jpg",
+    "site": "denteeth"
+  },
+  {
+    "name": "Osteotomo Angulado USA Delta 4,5",
+    "price": "$45.900",
+    "stock": "1 disponibles",
+    "quantity": 1,
+    "link": "https://www.denteeth.cl/producto/osteotomo-angulado-usa-delta-45/",
+    "image": "https://www.denteeth.cl/wp-content/uploads/2018/10/Osteotomo-Angulado-USA-Delta-45-1-600x600.jpg",
+    "site": "denteeth"
+  }
+]

@@ -29,15 +29,122 @@ const SITEMAPS = [
   },
 ];
 
+// Add new utility classes for resource management
+class ResourceMonitor {
+  static async checkSystemResources() {
+    const os = require("os");
+    const freeMem = os.freemem();
+    const totalMem = os.totalmem();
+    const memoryUsage = (totalMem - freeMem) / totalMem;
+
+    if (memoryUsage > 0.8) {
+      console.warn(
+        "⚠️ Alta utilización de memoria detectada:",
+        (memoryUsage * 100).toFixed(1) + "%"
+      );
+      return false;
+    }
+
+    const cpuUsage = os.loadavg()[0];
+    if (cpuUsage > os.cpus().length * 0.8) {
+      console.warn(
+        "⚠️ Alta utilización de CPU detectada:",
+        cpuUsage.toFixed(1)
+      );
+      return false;
+    }
+
+    return true;
+  }
+}
+
+class AdaptiveConcurrency {
+  constructor(initialConcurrent = 4, maxConcurrent = 8) {
+    this.currentConcurrent = initialConcurrent;
+    this.maxConcurrent = maxConcurrent;
+    this.errorCount = 0;
+    this.successCount = 0;
+    this.lastAdjustment = Date.now();
+  }
+
+  async adjust() {
+    const now = Date.now();
+    // Only adjust every 30 seconds
+    if (now - this.lastAdjustment < 30000) return;
+
+    const resourcesOK = await ResourceMonitor.checkSystemResources();
+
+    if (!resourcesOK || this.errorCount > 5) {
+      this.currentConcurrent = Math.max(2, this.currentConcurrent - 1);
+      this.errorCount = 0;
+      console.log(`🔽 Reduciendo concurrencia a ${this.currentConcurrent}`);
+    } else if (this.errorCount === 0 && this.successCount > 10 && resourcesOK) {
+      this.currentConcurrent = Math.min(
+        this.maxConcurrent,
+        this.currentConcurrent + 1
+      );
+      console.log(`🔼 Aumentando concurrencia a ${this.currentConcurrent}`);
+    }
+
+    this.successCount = 0;
+    this.lastAdjustment = now;
+  }
+
+  recordError() {
+    this.errorCount++;
+    this.adjust();
+  }
+
+  recordSuccess() {
+    this.successCount++;
+    this.adjust();
+  }
+
+  getCurrentLimit() {
+    return this.currentConcurrent;
+  }
+}
+
+class RequestQueue {
+  constructor(adaptiveConcurrency) {
+    this.queue = [];
+    this.running = 0;
+    this.adaptiveConcurrency = adaptiveConcurrency;
+  }
+
+  async add(task) {
+    if (this.running >= this.adaptiveConcurrency.getCurrentLimit()) {
+      await new Promise((resolve) => this.queue.push(resolve));
+    }
+
+    this.running++;
+    try {
+      const result = await task();
+      this.adaptiveConcurrency.recordSuccess();
+      return result;
+    } catch (error) {
+      this.adaptiveConcurrency.recordError();
+      throw error;
+    } finally {
+      this.running--;
+      if (this.queue.length > 0) {
+        const next = this.queue.shift();
+        next();
+      }
+    }
+  }
+}
+
 // Configuración general
 const CONFIG = {
-  concurrentBrowsers: 2, // Número de navegadores concurrentes para diferentes sitios
-  requestDelay: 1500, // Milisegundos entre solicitudes al mismo sitio
-  timeout: 60000, // Timeout para carga de página
-  maxRetries: 2, // Intentos máximos para scrapear un producto
-  testMode: true, // Modo de prueba (limita el número de productos)
-  testProductLimit: 10, // Límite de productos en modo prueba
-  outputDir: "scraper_results", // Directorio para resultados
+  concurrentBrowsers: 4,
+  requestDelay: 1000,
+  timeout: 30000,
+  maxRetries: 3,
+  testMode: true,
+  testProductLimit: 10,
+  outputDir: "scraper_results",
+  adaptiveConcurrency: new AdaptiveConcurrency(4, 8),
 };
 
 // Función para obtener las URLs de productos desde el sitemap
@@ -756,47 +863,23 @@ function cleanPrice(priceText) {
 // Extraer precio de producto
 async function extractPrice(page, selectors, domain) {
   try {
-    // Verificar primero si el producto está agotado
-    const stockStatus = await page.evaluate(() => {
-      // Buscar indicadores de agotado
-      const stockTexts = [
-        "Agotado",
-        "Out of stock",
-        "Sin stock",
-        "No disponible",
-        "Sold out",
-      ];
-      for (const text of stockTexts) {
-        if (document.body.textContent.includes(text)) {
-          return "Agotado";
-        }
+    // For Damus (JumpSeller), use specific price selector first
+    if (domain === "damus") {
+      const damusprice = await page.evaluate(() => {
+        const priceElement = document.querySelector(
+          ".product-form-price, #product-form-price, .form-price_desktop"
+        );
+        return priceElement ? priceElement.textContent.trim() : null;
+      });
+
+      if (damusprice) {
+        return cleanPrice(damusprice);
       }
-
-      // Verificar elementos de stock
-      const stockElement = document.querySelector(
-        ".stock, .availability, .product-stock, .inventory_status"
-      );
-      if (
-        stockElement &&
-        stockElement.textContent
-          .trim()
-          .match(/agotado|out of stock|sin stock|no disponible|sold out/i)
-      ) {
-        return "Agotado";
-      }
-
-      return null;
-    });
-
-    // Si el producto está agotado, devolver un mensaje indicativo
-    if (stockStatus === "Agotado") {
-      return "No disponible (Agotado)";
     }
 
     // Caso especial para GAC y Ortotek - intentar primero con un selector específico
     if (domain === "gacchile" || domain === "ortotek") {
       try {
-        // Extraer directamente el precio completo con un selector específico
         const specificPrice = await page.evaluate((domain) => {
           const priceElement = document.querySelector(
             "p.price span.woocommerce-Price-amount.amount bdi"
@@ -820,7 +903,6 @@ async function extractPrice(page, selectors, domain) {
     // Intentar extraer el precio usando los selectores proporcionados
     for (const selector of selectors) {
       try {
-        // Verificar si el selector existe en la página
         const elementExists = await page.evaluate((sel) => {
           return document.querySelector(sel) !== null;
         }, selector);
@@ -836,50 +918,39 @@ async function extractPrice(page, selectors, domain) {
             const currencyElement = document.querySelector(sel);
             if (!currencyElement) return null;
 
-            // Intentar obtener el valor del precio del elemento hermano
             let priceValue = "";
-
-            // Verificar si el elemento padre es un <bdi>
             const parentElement = currencyElement.parentElement;
             if (
               parentElement &&
               parentElement.tagName.toLowerCase() === "bdi"
             ) {
-              // Obtener el contenido de texto completo del bdi y extraer el valor numérico
               const fullText = parentElement.textContent.trim();
-              // Extraer la parte numérica después del símbolo de moneda
               const match = fullText.match(/\$\s*([0-9.,]+)/);
               if (match && match[1]) {
                 return "$" + match[1];
               }
             }
 
-            // Si no encontramos el precio en el bdi, intentar con el siguiente nodo
             let nextSibling = currencyElement.nextSibling;
-
-            // Si el siguiente nodo es un nodo de texto, obtener su valor
             if (
               nextSibling &&
-              nextSibling.nodeType === Node.TEXT_NODE &&
+              nextSibling.nodeType === 3 &&
               nextSibling.textContent.trim()
             ) {
               priceValue = nextSibling.textContent.trim();
               return "$" + priceValue;
             }
 
-            // Si no hay texto en el siguiente nodo, buscar en el elemento padre
             if (currencyElement.parentElement) {
-              // Obtener todo el texto del elemento padre
               const parentText =
                 currencyElement.parentElement.textContent.trim();
-              // Extraer la parte numérica después del símbolo de moneda
               const match = parentText.match(/\$\s*([0-9.,]+)/);
               if (match && match[1]) {
                 return "$" + match[1];
               }
             }
 
-            return currencyElement.textContent; // Devolver solo el símbolo si no encontramos el valor
+            return currencyElement.textContent;
           }, selector);
 
           if (priceText && priceText !== "$") {
@@ -887,19 +958,17 @@ async function extractPrice(page, selectors, domain) {
           }
         }
 
-        // Extracción normal del precio
         const priceText = await page.evaluate((sel) => {
           const element = document.querySelector(sel);
           return element ? element.textContent.trim() : null;
         }, selector);
 
         if (priceText) {
-          // Para GAC y Ortotek, verificar si solo tenemos el símbolo de moneda
           if (
             (domain === "gacchile" || domain === "ortotek") &&
             priceText === "$"
           ) {
-            continue; // Intentar con el siguiente selector
+            continue;
           }
           return cleanPrice(priceText);
         }
@@ -908,78 +977,43 @@ async function extractPrice(page, selectors, domain) {
           `Error al extraer precio con selector ${selector}:`,
           error
         );
-        // Continuar con el siguiente selector
       }
     }
 
-    // Si llegamos aquí, intentar una estrategia más general para GAC y Ortotek
-    if (domain === "gacchile" || domain === "ortotek") {
-      try {
-        const priceText = await page.evaluate(() => {
-          // Estrategia 1: Buscar el precio en la estructura específica
-          const bdiElement = document.querySelector(
-            "p.price span.woocommerce-Price-amount.amount bdi"
-          );
-          if (bdiElement) {
-            return bdiElement.textContent.trim();
-          }
-
-          // Estrategia 2: Buscar cualquier elemento que contenga un precio con formato de moneda
-          const priceElements = Array.from(
-            document.querySelectorAll("*")
-          ).filter((el) => {
-            const text = el.textContent.trim();
-            return text.includes("$") && /\$\s*[0-9.,]+/.test(text);
-          });
-
-          if (priceElements.length > 0) {
-            // Tomar el elemento con el texto más corto, que probablemente sea solo el precio
-            priceElements.sort(
-              (a, b) => a.textContent.length - b.textContent.length
-            );
-            return priceElements[0].textContent.trim();
-          }
-
-          // Estrategia 3: Buscar específicamente en elementos con clase price o woocommerce-Price-amount
-          const priceContainer = document.querySelector(
-            ".price, .woocommerce-Price-amount"
-          );
-          if (priceContainer) {
-            return priceContainer.textContent.trim();
-          }
-
-          return null;
+    // Si llegamos aquí, intentar una estrategia más general
+    try {
+      const priceText = await page.evaluate(() => {
+        // Estrategia 1: Buscar el precio en elementos comunes
+        const priceElements = Array.from(
+          document.querySelectorAll(
+            ".price, .woocommerce-Price-amount, .product-form-price, #product-form-price, .form-price_desktop"
+          )
+        ).filter((el) => {
+          const text = el.textContent.trim();
+          return text.includes("$") && /\$\s*[0-9.,]+/.test(text);
         });
 
-        if (priceText && priceText !== "$") {
-          return cleanPrice(priceText);
+        if (priceElements.length > 0) {
+          priceElements.sort(
+            (a, b) => a.textContent.length - b.textContent.length
+          );
+          return priceElements[0].textContent.trim();
         }
-      } catch (error) {
-        console.error(
-          `Error al extraer precio con estrategia general para ${domain}:`,
-          error
-        );
+
+        return null;
+      });
+
+      if (priceText) {
+        return cleanPrice(priceText);
       }
-    }
-
-    // Verificar nuevamente el stock antes de devolver un valor predeterminado
-    const finalStockCheck = await page.evaluate(() => {
-      // Buscar indicadores de agotado más exhaustivamente
-      const pageText = document.body.textContent.toLowerCase();
-      return (
-        pageText.includes("agotado") ||
-        pageText.includes("out of stock") ||
-        pageText.includes("sin stock") ||
-        pageText.includes("no disponible") ||
-        pageText.includes("sold out")
+    } catch (error) {
+      console.error(
+        "Error en estrategia general de extracción de precio:",
+        error
       );
-    });
-
-    if (finalStockCheck) {
-      return "No disponible (Agotado)";
     }
 
-    return "$0"; // Devolver "$0" en lugar de null para mantener consistencia
+    return "$0"; // Valor por defecto si no se encuentra precio
   } catch (error) {
     console.error("Error en extractPrice:", error);
     return "$0";
@@ -993,25 +1027,43 @@ const extractStockInfo = async (page, stockSelectors) => {
       let status = "Desconocido";
       let quantity = null;
 
+      // Specific check for Damus stock status
+      const damusStockElement = document.querySelector(
+        ".form-group.product-stock"
+      );
+      if (damusStockElement) {
+        const stockLabel = damusStockElement.querySelector(
+          ".form-control-label"
+        );
+        if (stockLabel) {
+          status = stockLabel.textContent.trim();
+          // Don't try to parse quantity from status text for Damus
+          return { status, quantity: null };
+        }
+      }
+
       // Verificar selectores específicos de stock
       for (const selector of stockSelectors) {
         const el = document.querySelector(selector);
         if (el) {
           status = el.textContent.trim();
 
-          // Intentar extraer cantidad si está disponible
-          const quantityMatch = status.match(/\d+/);
+          // Only try to parse quantity if it's a clear numeric value
+          const quantityMatch = status.match(/\b\d{1,4}\b/); // Only match reasonable quantities (1-4 digits)
           if (quantityMatch) {
-            quantity = parseInt(quantityMatch[0], 10);
+            const parsedQuantity = parseInt(quantityMatch[0], 10);
+            // Only set quantity if it's a reasonable number
+            if (parsedQuantity >= 0 && parsedQuantity < 10000) {
+              quantity = parsedQuantity;
+            }
           }
-
           break;
         }
       }
 
       // Verificar estado del botón de compra
       const addToCartButton = document.querySelector(
-        ".single_add_to_cart_button, .add_to_cart_button, [name='add-to-cart'], #add-to-cart, .btn-add-to-cart"
+        '.single_add_to_cart_button, .add_to_cart_button, [name="add-to-cart"], #add-to-cart, .btn-add-to-cart'
       );
       if (addToCartButton && addToCartButton.disabled) {
         status = "Agotado";
@@ -1033,6 +1085,7 @@ const extractStockInfo = async (page, stockSelectors) => {
       for (const text of stockTexts.agotado) {
         if (document.body.textContent.includes(text)) {
           status = "Agotado";
+          quantity = null; // Reset quantity if product is out of stock
           break;
         }
       }
@@ -1040,16 +1093,18 @@ const extractStockInfo = async (page, stockSelectors) => {
       // Buscar textos de disponibilidad en la página
       for (const text of stockTexts.disponible) {
         if (document.body.textContent.includes(text)) {
-          // Si encontramos un texto de disponibilidad, buscamos un número cercano
           const availabilitySection = Array.from(
             document.querySelectorAll("*")
           ).find((el) => el.textContent.includes(text));
 
           if (availabilitySection) {
             const quantityText = availabilitySection.textContent;
-            const quantityMatch = quantityText.match(/\d+/);
+            const quantityMatch = quantityText.match(/\b\d{1,4}\b/); // Only match reasonable quantities
             if (quantityMatch) {
-              quantity = parseInt(quantityMatch[0], 10);
+              const parsedQuantity = parseInt(quantityMatch[0], 10);
+              if (parsedQuantity >= 0 && parsedQuantity < 10000) {
+                quantity = parsedQuantity;
+              }
             }
             status = "En stock";
           } else {
@@ -1057,16 +1112,6 @@ const extractStockInfo = async (page, stockSelectors) => {
           }
           break;
         }
-      }
-
-      // Si el producto tiene precio pero ninguna indicación de agotado, asumimos disponible
-      if (
-        status === "Desconocido" &&
-        document.querySelector(
-          ".price, .woocommerce-Price-amount, .product-form-price"
-        )
-      ) {
-        status = "En stock";
       }
 
       return { status, quantity };

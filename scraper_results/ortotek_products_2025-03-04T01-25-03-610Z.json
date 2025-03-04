@@ -16,12 +16,12 @@
       "Tecnica": "Roth",
       "Slot": ".022"
     },
-    "timestamp": "2025-03-01T03:49:33.750Z"
+    "timestamp": "2025-03-04T01:24:01.972Z"
   },
   {
     "name": "KIT BRACKET AUTOLIGADO ALTITUDE | RMO",
-    "price": "No disponible (Agotado)",
-    "stock": "Agotado",
+    "price": "$0",
+    "stock": "Este producto no está disponible porque no quedan existencias.",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/kit-bracket-autoligado-altitude-rmo/",
     "image": "https://www.ortotek.cl/wp-content/uploads/2020/09/KM11102-600x600.png",
@@ -34,12 +34,12 @@
       "Tecnica": "MBT, Roth",
       "Slot": ".022"
     },
-    "timestamp": "2025-03-01T03:49:37.640Z"
+    "timestamp": "2025-03-04T01:24:07.793Z"
   },
   {
     "name": "KIT BRACKET CERÁMICO CLEAR | RMO",
     "price": "$192.060",
-    "stock": "En stock",
+    "stock": "Desconocido",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/kit-bracket-ceramico-clear-rmo/",
     "image": "https://www.ortotek.cl/wp-content/uploads/2020/09/KQ07202-600x600.jpg",
@@ -53,11 +53,11 @@
       "Tecnica": "Roth",
       "Slot": ".018, .022"
     },
-    "timestamp": "2025-03-01T03:49:41.609Z"
+    "timestamp": "2025-03-04T01:24:13.107Z"
   },
   {
     "name": "KIT BRACKET FLI COMPOSITE | RMO",
-    "price": "No disponible (Agotado)",
+    "price": "$70.880",
     "stock": "Agotado",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/kit-bracket-fli-composite-rmo/",
@@ -72,12 +72,12 @@
       "Tecnica": "Roth",
       "Slot": ".022"
     },
-    "timestamp": "2025-03-01T03:49:45.785Z"
+    "timestamp": "2025-03-04T01:24:19.526Z"
   },
   {
     "name": "KIT BRACKET CERÁMICO VAPOR | G&H ORTHODONTICS",
-    "price": "No disponible (Agotado)",
-    "stock": "Agotado",
+    "price": "$0",
+    "stock": "Este producto no está disponible porque no quedan existencias.",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/kit-bracket-ceramico-vapor-gh-orthodontics/",
     "image": "https://www.ortotek.cl/wp-content/uploads/2020/09/76K-345-22-01_1-600x600.png",
@@ -91,12 +91,12 @@
       "Tecnica": "MBT, Roth",
       "Slot": ".022"
     },
-    "timestamp": "2025-03-01T03:49:49.653Z"
+    "timestamp": "2025-03-04T01:24:24.120Z"
   },
   {
     "name": "KIT BRACKET MINITAURUS | RMO",
     "price": "$53.350",
-    "stock": "En stock",
+    "stock": "Desconocido",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/kit-bracket-minitaurus-rmo/",
     "image": "https://www.ortotek.cl/wp-content/uploads/2020/09/KM01002-600x600.png",
@@ -110,11 +110,11 @@
       "Tecnica": "Ricketts, Roth",
       "Slot": ".018, .022"
     },
-    "timestamp": "2025-03-01T03:49:55.194Z"
+    "timestamp": "2025-03-04T01:24:27.411Z"
   },
   {
     "name": "BANDEJA PARA CEMENTAR BRACKETS | ORTHO SOURCE",
-    "price": "No disponible (Agotado)",
+    "price": "$1.760",
     "stock": "Agotado",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/bandeja-para-cementar-brackets-ortho-source/",
@@ -127,11 +127,11 @@
       "Dimensiones": "10 × 10 × 10 cm",
       "Marca": "Ortho Source"
     },
-    "timestamp": "2025-03-01T03:50:00.305Z"
+    "timestamp": "2025-03-04T01:24:31.332Z"
   },
   {
     "name": "REPUESTO PUNTAS ÁCIDO GEL | RMO",
-    "price": "No disponible (Agotado)",
+    "price": "$11.130",
     "stock": "Agotado",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/repuesto-puntas-acido-gel-rmo/",
@@ -144,7 +144,7 @@
       "Dimensiones": "10 × 10 × 10 cm",
       "Marca": "RMO"
     },
-    "timestamp": "2025-03-01T03:50:05.759Z"
+    "timestamp": "2025-03-04T01:24:34.569Z"
   },
   {
     "name": "ÁCIDO GEL | RMO",
@@ -161,11 +161,11 @@
       "Dimensiones": "10 × 10 cm",
       "Marca": "RMO"
     },
-    "timestamp": "2025-03-01T03:50:11.085Z"
+    "timestamp": "2025-03-04T01:24:38.132Z"
   },
   {
     "name": "ADAPTADOR DE BANDA | CORNERSTONE",
-    "price": "No disponible (Agotado)",
+    "price": "$7.969",
     "stock": "Agotado",
     "quantity": null,
     "link": "https://www.ortotek.cl/product/adaptador-de-banda-cornerstone/",
@@ -178,6 +178,6 @@
       "Dimensiones": "10 × 10 × 10 cm",
       "Marca": "CornerStone"
     },
-    "timestamp": "2025-03-01T03:50:16.265Z"
+    "timestamp": "2025-03-04T01:24:41.463Z"
   }
 ]

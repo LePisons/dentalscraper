@@ -1,18 +1,22 @@
 {
-  "name": "projectscrap",
+  "name": "dental-scraper",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Web scraper for dental supply websites with Supabase integration",
+  "type": "module",
+  "main": "src/scheduler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/scheduler.js",
+    "scrape": "node src/scraper.js",
+    "test": "node src/scraper.js --test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
-    "axios": "^1.8.1",
-    "playwright": "^1.50.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "playwright": "^1.40.1",
     "xml2js": "^0.6.2"
   }
 }

@@ -1,0 +1,41 @@
+1. Data Collection Layer (VPS)
+Scraping scripts run on your VPS on a schedule (e.g., every 6 hours)
+Each store has its own scraping configuration and schedule
+Scripts collect: prices, product info, availability, etc.
+2. Data Processing & Storage (VPS → Supabase)
+Raw Data Processing
+Scripts clean and normalize the scraped data
+Format standardization across different stores
+Price normalization (if different currencies)
+Image URL processing
+Database Updates (Supabase)
+New products are inserted
+Existing products are updated
+Price changes trigger entries in price_history
+Failed scraping attempts are logged
+3. Data Access Layer (Supabase → Frontend)
+GraphQL API
+Serves as intermediary between Supabase and Frontend
+Handles data queries and filtering
+Manages data relationships
+Next.js Frontend
+Fetches data from GraphQL API
+Can use server-side rendering for better SEO
+Implements caching strategies for better performance
+Key Considerations:
+Real-time Updates
+Supabase provides real-time capabilities if needed
+Price changes can be reflected immediately in the UI
+Error Handling
+Failed scraping attempts are logged
+System alerts for persistent failures
+Data validation before storage
+Performance
+Implement caching at various levels
+Pagination for large product lists
+Optimize database queries
+Scalability
+Easy to add new stores
+Database can handle growing product catalog
+VPS resources can be scaled as needed
+Would you like me to elaborate on any of these aspects or discuss specific implementation details?
